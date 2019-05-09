@@ -39,8 +39,11 @@ namespace MongoDBDemo
             //    Console.WriteLine();
             //}
 
-            db.LoadRecordById<PersonModel>("Users", new Guid("602879cf - d2db - 4f1d - 9db6 - 845817322e38"));
+            var oneRec = db.LoadRecordById<PersonModel>("Users", new Guid("602879cf-d2db-4f1d-9db6-845817322e38"));
+            //oneRec.DateOfBirth = new DateTime(1982, 10, 31, 0, 0, 0, DateTimeKind.Utc);
+            //db.UpsertRecord("Users", oneRec.Id, oneRec);
 
+            db.DeleteRecord<PersonModel>("Users", oneRec.Id);
             Console.ReadLine();
         }
     }
@@ -49,9 +52,11 @@ namespace MongoDBDemo
     {
         [BsonId]
         public Guid Id { get; set; }
-       public string FirstName { get; set; }
+        public string FirstName { get; set; }
         public string LastName { get; set; }
         public AddressModel PrimaryAddress { get; set; }
+        [BsonElement("dob")]
+        public DateTime DateOfBirth { get; set; }
     }
 
     public class AddressModel
@@ -90,6 +95,24 @@ namespace MongoDBDemo
             var filter = Builders<T>.Filter.Eq("Id", id);
 
             return collection.Find(filter).First();
+        }
+
+        public void UpsertRecord<T>(string table, Guid id, T record)
+        {
+            var collection = db.GetCollection<T>(table);
+
+            var result = collection.ReplaceOne(new BsonDocument("_id", id),
+                record,
+                new UpdateOptions { IsUpsert = true }); 
+        }
+
+        public void DeleteRecord<T>(string table, Guid id)
+        {
+            var collection = db.GetCollection<T>(table);
+            var filter = Builders<T>.Filter.Eq("Id", id);
+
+            collection.DeleteOne(filter);
+
         }
     }
 }
