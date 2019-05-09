@@ -26,18 +26,20 @@ namespace MongoDBDemo
             //};
             //db.InsertRecord("Users", person);
 
-            var recs = db.LoadRecords<PersonModel>("Users");
+            //var recs = db.LoadRecords<PersonModel>("Users");
 
-            foreach (var rec in recs)
-            {
-                Console.WriteLine($"{rec.Id}: {rec.FirstName} {rec.LastName}");
+            //foreach (var rec in recs)
+            //{
+            //    Console.WriteLine($"{rec.Id}: {rec.FirstName} {rec.LastName}");
 
-                if(rec.PrimaryAddress!= null)
-                {
-                    Console.WriteLine(rec.PrimaryAddress.City);
-                }
-                Console.WriteLine();
-            }
+            //    if(rec.PrimaryAddress!= null)
+            //    {
+            //        Console.WriteLine(rec.PrimaryAddress.City);
+            //    }
+            //    Console.WriteLine();
+            //}
+
+            db.LoadRecordById<PersonModel>("Users", new Guid("602879cf - d2db - 4f1d - 9db6 - 845817322e38"));
 
             Console.ReadLine();
         }
@@ -80,6 +82,14 @@ namespace MongoDBDemo
             var collection = db.GetCollection<T>(table);
 
             return collection.Find(new BsonDocument()).ToList();
+        }
+
+        public T LoadRecordById<T>(string table, Guid id)
+        {
+            var collection = db.GetCollection<T>(table);
+            var filter = Builders<T>.Filter.Eq("Id", id);
+
+            return collection.Find(filter).First();
         }
     }
 }
